@@ -3,6 +3,8 @@ import axios from "axios";
 import { startSignalR } from "./class/signalr";
 import PlsConnect from "./class/connection";
 import { TableData } from "./class/ViewData";
+import { isElectron } from "./services/electronService";
+import IpPortModal from "./Component/SetupModal";
 
 const App = () => {
   const [lastUser, setLastUser] = useState({});
@@ -11,6 +13,8 @@ const App = () => {
   const [time, setTime] = useState("");
   const [empID, setEmpID] = useState("");
   const [lastname, setLastname] = useState("");
+  //const [installed, setIsInstalled] = useState(false);
+  const [showModal, setShowModal] = useState(false);
   // ================= INITIAL LOAD =================
   const loadInitial = async () => {
     try {
@@ -91,7 +95,6 @@ const App = () => {
         }
       });
 
-
       // ✅ REAL-TIME (FIXED: APPEND ONLY)
       connection.on("ReceiveLastTap", async (tap) => {
         if (!tap) return;
@@ -123,7 +126,7 @@ const App = () => {
           };
         });
         setTableData(sanitized);
-        
+
         setLogs((prev) => {
           const exists = prev.some(
             (item) =>
@@ -147,9 +150,46 @@ const App = () => {
     };
   }, []);
 
+  useEffect(() => {
+    Setup();
+  }, []);
+
+  const Setup = async () => {
+    //if (!isElectron()) return; // 🚫 SKIP WEB
+    // console.log(isElectron());
+    if (isElectron() === false) {
+      setShowModal(true); // Show modal in web for testing
+      return;
+    } else {
+      const data = await window.api.getConnections();
+      if (data.length === 0) {
+        setShowModal(true); // Show modal if no connections found
+      }
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
+
+  const handleSaveConnection = async (ipAddress, port) => {
+    if (isElectron() === false) {
+      localStorage.setItem("ipAddress", ipAddress);
+      localStorage.setItem("port", port);
+      return
+    } else if(isElectron === true) {
+      await window.api.insertIPPort(ipAddress, port);
+    }
+    setShowModal(false);
+  };
   // ================= UI =================
   return (
     <>
+      <IpPortModal
+        show={showModal}
+        handleClose={handleModalClose}
+        handleSave={handleSaveConnection}
+      />
       <div className="container-fluid p-4" style={{ background: "#f5f5f5" }}>
         <div className="d-flex flex-column align-items-center">
           <img
@@ -196,7 +236,7 @@ const App = () => {
                     >
                       {row.type}
                     </td>
-                    <td >{row.time}</td>
+                    <td>{row.time}</td>
                     <td>{row.date}</td>
                     <td className="text-success fw-bold">
                       {row.status === 17 ? "GRANTED" : ""}
