@@ -158,7 +158,12 @@ const App = () => {
     //if (!isElectron()) return; // 🚫 SKIP WEB
     // console.log(isElectron());
     if (isElectron() === false) {
-      setShowModal(true); // Show modal in web for testing
+      const ipAddress = localStorage.getItem("ipAddress");
+      if (ipAddress === null) {
+        setShowModal(true); // Show modal in web for testing
+      } else {
+        return;
+      }
       return;
     } else {
       const data = await window.api.getConnections();
@@ -176,10 +181,12 @@ const App = () => {
     if (isElectron() === false) {
       localStorage.setItem("ipAddress", ipAddress);
       localStorage.setItem("port", port);
-      return
-    } else if(isElectron === true) {
+      window.location.reload();
+      return;
+    } else if (isElectron === true) {
       await window.api.insertIPPort(ipAddress, port);
     }
+
     setShowModal(false);
   };
   // ================= UI =================
