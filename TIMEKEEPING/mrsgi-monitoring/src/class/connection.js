@@ -1,7 +1,15 @@
-export default function Plsconnection() 
-{
-    //const baseUrl = "https://localhost:44345"; 
-    // const baseUrl = "http://localhost:8181"; //S23 BAIS CONNECTION STRING
-    const baseUrl = "http://10.216.3.77:8181"; 
-    return baseUrl;
+import { isElectron } from "../services/electronService";
+
+export default function Plsconnection() {
+  let baseUrl;
+  if (isElectron() === false) {
+    const ipAddress = localStorage.getItem("ipAddress");
+    const port = localStorage.getItem("port");
+    baseUrl = `http://${ipAddress}:${port}`;
+  } else {
+    console.log("plsconnection called else");
+  }
+  //   console.log("plsconnection called");
+  //const baseUrl = "http://10.216.3.77:8181";
+  return baseUrl;
 }
