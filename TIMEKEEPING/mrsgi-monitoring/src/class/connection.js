@@ -1,15 +1,21 @@
 import { isElectron } from "../services/electronService";
 
-export default function Plsconnection() {
+const Plsconnection = async () => {
   let baseUrl;
-  if (isElectron() === false) {
-    const ipAddress = localStorage.getItem("ipAddress");
-    const port = localStorage.getItem("port");
-    baseUrl = `http://${ipAddress}:${port}`;
-  } else {
-    console.log("plsconnection called else");
-  }
-  //   console.log("plsconnection called");
-  //const baseUrl = "http://10.216.3.77:8181";
-  return baseUrl;
-}
+  try {
+    if (isElectron() === false) {
+      const ipAddress = localStorage.getItem("ipAddress");
+      const port = localStorage.getItem("port");
+      baseUrl = `http://${ipAddress}:${port}`;
+      return baseUrl;
+    } else if (isElectron() === true) {
+      const data = await window.api.getConnections();
+
+      return (baseUrl = `http://${data[0].IP_ADDRESS}:${data[0].PORT}`);
+    }
+  } catch (err) {
+    console.error("Error occurred while fetching connection details:", err);
+    return null;}
+};
+
+export default Plsconnection;

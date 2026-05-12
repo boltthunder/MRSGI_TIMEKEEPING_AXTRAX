@@ -5,6 +5,7 @@ import PlsConnect from "./class/connection";
 import { TableData } from "./class/ViewData";
 import { isElectron } from "./services/electronService";
 import IpPortModal from "./Component/SetupModal";
+import Plsconnection from "./class/connection";
 
 const App = () => {
   const [lastUser, setLastUser] = useState({});
@@ -13,12 +14,15 @@ const App = () => {
   const [time, setTime] = useState("");
   const [empID, setEmpID] = useState("");
   const [lastname, setLastname] = useState("");
-  //const [installed, setIsInstalled] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [storeName, setStoreName] = useState("");
+
   // ================= INITIAL LOAD =================
   const loadInitial = async () => {
     try {
-      const res = await axios.get(`${PlsConnect()}/api/View/Get/TodayTaps`);
+      const url = await Plsconnection();
+
+      const res = await axios.get(`${url}/api/View/Get/TodayTaps`);
 
       const mapped = res.data.map((item) => {
         const [date = "", time = ""] = (item.dtEventReal || "").split("T");
@@ -151,25 +155,31 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+    const name = localStorage.getItem("storeName");
+    setStoreName(name);
     Setup();
   }, []);
 
   const Setup = async () => {
-    //if (!isElectron()) return; // 🚫 SKIP WEB
-    // console.log(isElectron());
-    if (isElectron() === false) {
-      const ipAddress = localStorage.getItem("ipAddress");
-      if (ipAddress === null) {
-        setShowModal(true); // Show modal in web for testing
-      } else {
+    try {
+      if (isElectron() === true) {
+        const name = await window.api.getConnections();
+        setStoreName(name[0].STORE_NAME);
+      }
+
+      if (isElectron() === false) {
+        const ipAddress = localStorage.getItem("ipAddress");
+
+        if (ipAddress === null) {
+          setShowModal(true); // Show modal in web for testing
+        } else {
+          return;
+        }
         return;
       }
-      return;
-    } else {
-      const data = await window.api.getConnections();
-      if (data.length === 0) {
-        setShowModal(true); // Show modal if no connections found
-      }
+    } catch (err) {
+      setShowModal(true);
+      console.error("Setup error:", err);
     }
   };
 
@@ -177,14 +187,17 @@ const App = () => {
     setShowModal(false);
   };
 
-  const handleSaveConnection = async (ipAddress, port) => {
+  const handleSaveConnection = async (ipAddress, port, storeName) => {
     if (isElectron() === false) {
       localStorage.setItem("ipAddress", ipAddress);
       localStorage.setItem("port", port);
+      localStorage.setItem("storeName", storeName);
       window.location.reload();
       return;
-    } else if (isElectron === true) {
-      await window.api.insertIPPort(ipAddress, port);
+    } else if (isElectron() === true) {
+      await window.api.insertIPPort(ipAddress, port, storeName);
+      console.log("Saved IP and Port:", ipAddress, port, storeName);
+      window.location.reload();
     }
 
     setShowModal(false);
@@ -200,12 +213,15 @@ const App = () => {
       <div className="container-fluid p-4" style={{ background: "#f5f5f5" }}>
         <div className="d-flex flex-column align-items-center">
           <img
-            src="/metro_logo_113x85.png"
+            src="./metro_logo_113x85.png"
             alt="Metro Logo"
             style={{ height: "80px" }}
           />
-          <h1 className="text-center mb-3" style={{ color: "#333" }}>
-            METRO MONITORING SYSTEM
+          <h1
+            className="text-center mb-3 text-uppercase"
+            style={{ color: "#333" }}
+          >
+            {storeName} MONITORING SYSTEM
           </h1>
         </div>
 
@@ -274,7 +290,7 @@ const App = () => {
         </div>
       </div>
       <div className="fixed-bottom text-dark text-center p-3 shadow">
-        <p className="power">POWERED BY: S25-MIS</p>
+        <p className="power">POWERED BY: S25-MIS JABUNGAN</p>
       </div>
     </>
   );

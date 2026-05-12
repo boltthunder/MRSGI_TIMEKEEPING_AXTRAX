@@ -1,11 +1,12 @@
 import * as signalR from "@microsoft/signalr";
-import PlsConnect from "./connection";
+import Plsconnection from "./connection";
 
 let connection = null;
 
 export const startSignalR = async () => {
+  const url = await Plsconnection();
   connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${PlsConnect()}/attendanceHub`, {
+    .withUrl(`${url}/attendanceHub`, {
       withCredentials: true,
     })
     .withAutomaticReconnect()

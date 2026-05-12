@@ -5,25 +5,28 @@ const { app } = require("electron");
 
 const isDev = !app.isPackaged;
 
-// Base folder
+// Always use EXE directory in production
 const basePath = isDev
   ? process.cwd()
   : path.dirname(app.getPath("exe"));
 
-// Create sqlite-db folder
+// DB folder inside app directory
 const dbFolder = path.join(basePath, "db");
 
+// Ensure folder exists
 if (!fs.existsSync(dbFolder)) {
   fs.mkdirSync(dbFolder, { recursive: true });
 }
 
-// Database path
+// SQLite DB file inside production folder
 const dbPath = path.join(dbFolder, "mrsgi.db");
 
 console.log("Database Path:", dbPath);
 
 // Connect database
 const db = new Database(dbPath);
+
+
 
 // Enable foreign keys
 db.exec(`PRAGMA foreign_keys = ON;`);
@@ -33,30 +36,31 @@ db.prepare(`
   CREATE TABLE IF NOT EXISTS Connection (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     IP_ADDRESS TEXT,
-    PORT TEXT
+    PORT TEXT,
+    STORE_NAME TEXT
   )
 `).run();
 
-const insertConnection = (ipAddress, port) => {
+const insertConnection = (ipAddress, port, storeName) => {
   const stmt = db.prepare(`
-    INSERT INTO Connection (IP_ADDRESS, PORT) VALUES (?, ?)
+    INSERT INTO Connection (IP_ADDRESS, PORT,STORE_NAME) VALUES (?, ?, ?)
   `);
-  stmt.run(ipAddress, port);
+  stmt.run(ipAddress, port, storeName);
 }
 
-const getConnections = () => {
+const getConnections =  () => {
   const stmt = db.prepare(`
     SELECT * FROM Connection
   `);
   return stmt.all();
 }
 
-const InsertIPPort = (ipAddress, port) => {
-  console.log("Inserting IP and Port into database:", ipAddress, port);
+const InsertIPPort = (ipAddress, port, storeName) => {
+  // console.log("Inserting IP and Port into database:", ipAddress, port);
   const stmt = db.prepare(`
-    INSERT INTO Connection (IP_ADDRESS, PORT) VALUES (?, ?)
+    INSERT INTO Connection (IP_ADDRESS, PORT, STORE_NAME) VALUES (?, ?, ?)
   `);
-  stmt.run(ipAddress, port);
+  stmt.run(ipAddress, port, storeName);
 }
 
 

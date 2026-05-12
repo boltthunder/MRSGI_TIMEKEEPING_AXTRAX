@@ -23,10 +23,14 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
           policy => policy
-              .WithOrigins("http://localhost:8282","http://localhost:3000","http://10.216.3.77:8282") // React app URL
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-               .AllowCredentials()
+            //.WithOrigins("http://localhost:8282","http://localhost:3000","http://10.216.3.77:8282") // React app URL
+            //.AllowAnyHeader()
+            //.AllowAnyMethod()
+            // .AllowCredentials()
+            .SetIsOriginAllowed(origin => true)
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials()
       );
 });
 
