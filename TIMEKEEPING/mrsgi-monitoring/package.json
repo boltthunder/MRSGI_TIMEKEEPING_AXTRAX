@@ -1,8 +1,11 @@
 {
   "name": "mrsgi-monitoring",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "private": true,
+  "homepage": ".",
   "main": "electron/main.js",
+  "description": "MRSGI Monitoring System",
+  "author": "JABUNGAN FILIP",
   "dependencies": {
     "@microsoft/signalr": "^10.0.0",
     "@testing-library/dom": "^10.4.1",
@@ -12,20 +15,70 @@
     "axios": "^1.13.6",
     "better-sqlite3": "^12.9.0",
     "bootstrap": "^5.3.8",
-    "electron": "^41.3.0",
     "react": "^19.2.4",
     "react-bootstrap": "^2.10.10",
     "react-dom": "^19.2.4",
     "react-scripts": "5.0.1",
+    "sweetalert2": "^11.26.24",
     "web-vitals": "^2.1.4"
   },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "electron": "^41.3.0",
+    "electron-builder": "^26.8.1",
+    "electron-rebuild": "^3.2.9",
+    "wait-on": "^9.0.10"
+  },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "dev": "electron .",
-    "postinstall": "electron-rebuild"
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "electron": "electron .",
+    "dev": "concurrently \"npm run react-start\" \"wait-on http://localhost:3000 && electron .\"",
+    "build": "npm run react-build",
+    "dist": "npx electron-builder --win --x64 --publish never",
+    "postinstall": "electron-builder install-app-deps",
+    "rebuild": "electron-rebuild -f -w better-sqlite3"
+  },
+  "build": {
+    "extends": null,
+    "appId": "com.mrsgi.monitoring",
+    "productName": "MRSGI Monitoring",
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "electron/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "db",
+        "to": "db"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "MRSGI Monitoring"
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -44,8 +97,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "electron-rebuild": "^3.2.9"
   }
 }
